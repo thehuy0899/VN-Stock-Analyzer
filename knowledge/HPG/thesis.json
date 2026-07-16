@@ -1,0 +1,30 @@
+{
+    "investment_case": "Vietnam public investment growth",
+
+    "bull_thesis": [
+        "Public investment continues to grow",
+        "Dung Quat 2 comes online on schedule",
+        "HRC demand recovers",
+        "Domestic steel demand increases"
+    ],
+
+    "bear_thesis": [
+        "China dumps cheap steel",
+        "Iron ore prices surge",
+        "Real estate remains weak",
+        "Steel demand declines"
+    ],
+
+    "key_metrics": [
+        "Public investment disbursement",
+        "HRC price",
+        "Iron ore price",
+        "Vietnam PMI"
+    ],
+
+    "sell_conditions": [
+        "Dung Quat 2 delayed more than 12 months",
+        "ROIC below 12% for two consecutive years",
+        "China oversupply becomes structural"
+    ]
+}

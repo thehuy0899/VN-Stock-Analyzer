@@ -1,0 +1,16 @@
+{
+    "stage": "Maturity",
+
+    "market_size": "Large",
+
+    "cyclical": true,
+
+    "government_support": "High",
+
+    "major_competitors": [
+        "China Steel",
+        "Formosa"
+    ],
+
+    "entry_barrier": "High"
+}

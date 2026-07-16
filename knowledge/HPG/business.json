@@ -1,0 +1,47 @@
+{
+    "company": "Hoa Phat Group",
+
+    "ticker": "HPG",
+
+    "industry": "Steel",
+
+    "business_model": "Integrated Steel",
+
+    "core_product": [
+        "Construction Steel",
+        "HRC",
+        "Steel Pipe"
+    ],
+
+    "customer": [
+        "Construction",
+        "Infrastructure",
+        "Manufacturing"
+    ],
+
+    "supplier": [
+        "Iron Ore",
+        "Coking Coal"
+    ],
+
+    "growth_driver": [
+        "Public Investment",
+        "Dung Quat 2",
+        "Export"
+    ],
+
+    "pricing_power": "Medium",
+
+    "switching_cost": "Low",
+
+    "network_effect": "None",
+
+    "economies_of_scale": "High",
+
+    "brand_strength": "High",
+
+    "threat": [
+        "China Dumping",
+        "Carbon Tax"
+    ]
+}
