@@ -1,0 +1,32 @@
+{
+    "business_model": "IT Services",
+
+    "customer": [
+        "Domestic Enterprises",
+        "Global Enterprises"
+    ],
+
+    "core_product": [
+        "Software Development",
+        "Digital Transformation",
+        "AI Services"
+    ],
+
+    "growth_driver": [
+        "Global IT outsourcing",
+        "AI adoption",
+        "DX demand"
+    ],
+
+    "threat": [
+        "Global recession",
+        "Competition",
+        "Labor cost inflation"
+    ],
+
+    "pricing_power": "Medium",
+    "switching_cost": "High",
+    "network_effect": "Low",
+    "economies_of_scale": "High",
+    "brand_strength": "High"
+}

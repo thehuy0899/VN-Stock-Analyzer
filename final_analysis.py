@@ -7,7 +7,6 @@ from evidence_engine import (
 
 from narrative_engine import build_narratives
 from conclusion_engine import build_conclusion
-from thesis_engine import build_thesis
 
 
 def generate_final_analysis(
@@ -241,20 +240,6 @@ def generate_final_analysis(
         growth_quality_evidence,
     )
 
-    # ==============================
-    # THESIS
-    # ==============================
-
-    thesis_result = build_thesis(
-        strengths,
-        warnings,
-        cross_signals,
-        growth_quality_evidence,
-        earnings_driver_result,
-        financial_cross_signals,
-        capital_efficiency_result,
-        capital_allocation_result,
-    )
 
     # ==============================
     # RETURN
@@ -270,19 +255,4 @@ def generate_final_analysis(
         ),
         "analysis": analysis,
         "conclusion": conclusion,
-        "thesis": thesis_result.get(
-            "thesis"
-        ),
-        "growth_driver": thesis_result.get(
-            "growth_driver"
-        ),
-        "growth_quality": thesis_result.get(
-            "growth_quality"
-        ),
-        "capital_quality": thesis_result.get(
-            "capital_quality"
-        ),
-        "key_watch": thesis_result.get(
-            "key_watch"
-        ),
     }

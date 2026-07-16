@@ -1,16 +1,13 @@
 {
-    "stage": "Maturity",
+    "industry": "Steel",
 
-    "market_size": "Large",
+    "growth": "Medium",
 
-    "cyclical": true,
+    "cyclical": "High",
 
-    "government_support": "High",
+    "competition": "High",
 
-    "major_competitors": [
-        "China Steel",
-        "Formosa"
-    ],
+    "entry_barrier": "High",
 
-    "entry_barrier": "High"
+    "long_term_outlook": "Medium"
 }
