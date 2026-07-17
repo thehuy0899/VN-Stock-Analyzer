@@ -5,12 +5,12 @@ sys.path.append(
     str(Path(__file__).resolve().parent.parent)
 )
 
-from services.business_service import (
-    BusinessService,
+from services.moat_service import (
+    MoatService,
 )
 
-business = BusinessService.get_business(
+moat = MoatService.get_moat(
     "FPT"
 )
 
-print(business)
+print(moat)

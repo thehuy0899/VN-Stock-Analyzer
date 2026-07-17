@@ -1,74 +1,54 @@
 from core.business import Business
 
 
+LEVEL_SCORE = {
+    "High": 100,
+    "Medium": 70,
+    "Low": 40,
+}
+
+
 def calculate_business_score(
     business: Business,
-):
+) -> int:
+
     score = 0
 
-    details = []
-
     if business.business_model:
-        score += 15
-        details.append(
-            "✔ Business Model (+15)"
-        )
-
-    if business.core_product:
-        score += 10
-        details.append(
-            "✔ Core Product (+10)"
-        )
+        score += 100
 
     if business.customer:
-        score += 10
-        details.append(
-            "✔ Customer (+10)"
-        )
+        score += 100
+
+    if business.core_product:
+        score += 100
 
     if business.growth_driver:
-        score += 15
-        details.append(
-            "✔ Growth Driver (+15)"
-        )
+        score += 100
 
-    if business.pricing_power:
-        score += 15
-        details.append(
-            "✔ Pricing Power (+15)"
-        )
+    score += LEVEL_SCORE.get(
+        business.pricing_power,
+        0,
+    )
 
-    if business.economies_of_scale:
-        score += 15
-        details.append(
-            "✔ Economies of Scale (+15)"
-        )
+    score += LEVEL_SCORE.get(
+        business.switching_cost,
+        0,
+    )
 
-    if business.brand_strength:
-        score += 10
-        details.append(
-            "✔ Brand Strength (+10)"
-        )
+    score += LEVEL_SCORE.get(
+        business.network_effect,
+        0,
+    )
 
-    if business.switching_cost:
-        score += 5
-        details.append(
-            "✔ Switching Cost (+5)"
-        )
+    score += LEVEL_SCORE.get(
+        business.economies_of_scale,
+        0,
+    )
 
-    if business.network_effect:
-        score += 5
-        details.append(
-            "✔ Network Effect (+5)"
-        )
+    score += LEVEL_SCORE.get(
+        business.brand_strength,
+        0,
+    )
 
-    if business.threat:
-        score += 10
-        details.append(
-            "✔ Threat Analysis (+10)"
-        )
-
-    return {
-        "score": score,
-        "details": details,
-    }
+    return round(score / 9)

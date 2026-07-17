@@ -5,12 +5,12 @@ sys.path.append(
     str(Path(__file__).resolve().parent.parent)
 )
 
-from services.business_service import (
-    BusinessService,
+from investment_pipeline import (
+    run_investment_pipeline,
 )
 
-business = BusinessService.get_business(
+result = run_investment_pipeline(
     "FPT"
 )
 
-print(business)
+print(result.keys())

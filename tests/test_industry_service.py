@@ -5,12 +5,12 @@ sys.path.append(
     str(Path(__file__).resolve().parent.parent)
 )
 
-from services.business_service import (
-    BusinessService,
+from services.industry_service import (
+    IndustryService,
 )
 
-business = BusinessService.get_business(
+industry = IndustryService.get_industry(
     "FPT"
 )
 
-print(business)
+print(industry)
