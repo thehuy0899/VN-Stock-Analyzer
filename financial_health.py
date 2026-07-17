@@ -2,10 +2,13 @@ def calculate_financial_health(
     margin_result,
     growth_result,
     cross_result,
-    cashflow_result=None,
-    financial_cross_result=None,
+    cashflow_result,
+    financial_cross_result,
     balance_result=None,
+    piotroski_result=None,
+    altman_result=None,
 ):
+    
     # ==============================
     # COLLECT SIGNALS
     # ==============================
@@ -917,24 +920,72 @@ def calculate_financial_health(
         )
     )
 
+
     # ==============================
-    # TOTAL SCORE
+    # PIOTROSKI SCORE
     # ==============================
 
-    score = (
-        growth_score
-        + profitability_score
-        + cash_quality_score
-        + financial_structure_score
-    )
+    piotroski_bonus = 0
 
-    score = max(
-        0,
-        min(
-            score,
-            100,
-        ),
-    )
+    if piotroski_result is not None:
+
+        f_score = piotroski_result.get("score", 0)
+
+        if f_score >= 8:
+            piotroski_bonus = 10
+
+        elif f_score >= 6:
+            piotroski_bonus = 8
+
+        elif f_score >= 4:
+            piotroski_bonus = 5
+
+        elif f_score >= 2:
+            piotroski_bonus = 2
+
+    altman_bonus = 0
+
+    if (
+        altman_result is not None
+        and altman_result.get("status") == "success"
+    ):
+
+        level = altman_result.get("level")
+
+        if level == "Safe":
+            altman_bonus = 8
+
+        elif level == "Grey":
+            altman_bonus = 4
+
+        else:
+            altman_bonus = 0
+
+
+        # ==============================
+        # TOTAL SCORE
+        # ==============================
+
+        score = (
+            growth_score
+            + profitability_score
+            + cash_quality_score
+            + financial_structure_score
+        )
+
+        score = (
+            score * 0.85
+            + piotroski_bonus
+            + altman_bonus
+        )
+
+        score = max(
+            0,
+            min(
+                score,
+                100,
+            ),
+        )
 
     # ==============================
     # HEALTH CLASS
@@ -971,6 +1022,8 @@ def calculate_financial_health(
             "financial_structure": (
                 financial_structure_score
             ),
+            "piotroski": piotroski_bonus,
+            "altman": altman_bonus,
         },
         "strengths": strengths,
         "warnings": warnings,

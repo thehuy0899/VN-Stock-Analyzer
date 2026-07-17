@@ -61,6 +61,28 @@ if __name__ == "__main__":
     )
 
     print()
+    print("PIOTROSKI:")
+    print(
+        "Score:",
+        result["piotroski"]["score"],
+    )
+    print(
+        "Level:",
+        result["piotroski"]["level"],
+    )
+
+    print()
+    print("ALTMAN Z SCORE:")
+    print(
+        "Score:",
+        result["altman"]["score"],
+    )
+    print(
+        "Level:",
+        result["altman"]["level"],
+    )
+
+    print()
     print("STRENGTHS:")
 
     for signal in health_result.get(
@@ -85,46 +107,12 @@ if __name__ == "__main__":
         )
 
     print()
-    print("GROWTH DRIVER:")
+    print("\nANALYSIS:")
 
-    print(
-        final_analysis_result.get(
-            "growth_driver"
-        )
-    )
+    for item in final_analysis_result["analysis"]:
+        print(f"- {item}")
 
-    print()
-    print("GROWTH QUALITY:")
+    print("\nCONCLUSION:")
+    print(final_analysis_result["conclusion"])
 
-    print(
-        final_analysis_result.get(
-            "growth_quality"
-        )
-    )
-
-    print()
-    print("CAPITAL QUALITY:")
-
-    print(
-        final_analysis_result.get(
-            "capital_quality"
-        )
-    )
-
-    print()
-    print("KEY WATCH:")
-
-    print(
-        final_analysis_result.get(
-            "key_watch"
-        )
-    )
-
-    print()
-    print("FULL THESIS:")
-
-    print(
-        final_analysis_result.get(
-            "thesis"
-        )
-    )
+    

@@ -1,3 +1,5 @@
+
+print("Loaded:", __file__)
 from financial_data_loader import (
     load_financial_data,
 )
@@ -59,6 +61,9 @@ from engines.decision_engine import (
     make_decision,
 )
 
+from engines.piotroski_engine import analyze as analyze_piotroski
+from engines.altman_engine import analyze as analyze_altman
+from engines.altman_score_engine import classify as classify_altman
 
 # ============================================================
 # ANALYSIS PIPELINE
@@ -85,6 +90,14 @@ def run_analysis_pipeline(
     balance_sheet,
     cashflow,
 ):
+    
+    print("===== BALANCE ITEM IDs =====")
+    print(balance_sheet["item_id"].tolist())
+
+    print("\n===== INCOME ITEM IDs =====")
+    print(income["item_id"].tolist())
+
+
     # ==============================
     # MARGIN
     # ==============================
@@ -133,6 +146,33 @@ def run_analysis_pipeline(
             balance_sheet
         )
     )
+
+
+    piotroski_result = analyze_piotroski(
+        income,
+        balance_sheet,
+        cashflow,
+    )
+
+    from engines.piotroski_score_engine import classify
+
+    piotroski_result["level"] = classify(
+        piotroski_result["score"]
+    )
+
+    print(piotroski_result)
+
+    altman_result = analyze_altman(
+        income,
+        balance_sheet,
+    )
+
+    if altman_result["status"] == "success":
+        altman_result["level"] = classify_altman(
+            altman_result["score"]
+        )
+
+    print(altman_result)
 
     # ==============================
     # CASHFLOW
@@ -211,10 +251,14 @@ def run_analysis_pipeline(
         cashflow_result,
         financial_cross_result,
         balance_result,
+        piotroski_result,
+        altman_result,
     )
+
     decision_result = make_decision(
-        business_score=100,
-        financial_score=health_result["score"],
+        health_result["score"],
+        health_result["score"],
+        piotroski_result["score"],
     )
 
     # ==============================
@@ -271,6 +315,8 @@ def run_analysis_pipeline(
             final_analysis_result
         ),
         "decision": decision_result,
+        "piotroski": piotroski_result,
+        "altman": altman_result,
     }
 
 

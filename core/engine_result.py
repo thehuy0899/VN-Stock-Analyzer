@@ -1,22 +1,18 @@
 from dataclasses import dataclass, field
-from typing import Any
+from typing import List
 
 
 @dataclass
 class EngineResult:
-    """
-    Standard result returned by every analysis engine.
-    """
 
-    score: float
-    confidence: float
+    score: int
+
+    level: str
 
     summary: str
 
-    strengths: list[str] = field(default_factory=list)
-    weaknesses: list[str] = field(default_factory=list)
-    evidence: list[str] = field(default_factory=list)
+    strengths: List[str] = field(default_factory=list)
 
-    recommendation: str = ""
+    weaknesses: List[str] = field(default_factory=list)
 
-    metadata: dict[str, Any] = field(default_factory=dict)
+    metrics: dict = field(default_factory=dict)
