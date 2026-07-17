@@ -1,115 +1,212 @@
-from core.dcf import DCFInput
+import pandas as pd
+
+from engines.dcf_assumption_engine import (
+    get_default_assumptions,
+)
+from engines.discount_rate_engine import calculate_wacc
+from engines.terminal_value_engine import calculate_terminal_value
 
 
-def project_revenue(
-    revenue: float,
-    growth: float,
-    years: int = 5,
+def _value(
+    df: pd.DataFrame,
+    item_id: str,
+    year=None,
 ):
-    revenues = []
+    row = df[df["item_id"] == item_id]
 
-    current = revenue
+    if row.empty:
+        return None
 
-    for _ in range(years):
-        current *= (1 + growth)
-        revenues.append(current)
-
-    return revenues
-
-
-def project_ebit(
-    revenues: list[float],
-    operating_margin: float,
-):
-    return [
-        revenue * operating_margin
-        for revenue in revenues
+    numeric_cols = [
+        c for c in row.columns
+        if str(c).isdigit()
     ]
 
+    if not numeric_cols:
+        return None
 
-def project_nopat(
-    ebits: list[float],
-    tax_rate: float,
+    numeric_cols = sorted(numeric_cols)
+
+    if year is None:
+        year = numeric_cols[-1]
+
+    if year not in row.columns:
+        return None
+
+    value = row.iloc[0][year]
+
+    if pd.isna(value):
+        return None
+
+    return float(value)
+
+
+def _net_debt(balance_sheet):
+    cash = _value(
+        balance_sheet,
+        "cash_and_cash_equivalents",
+    )
+
+    if cash is None:
+        cash = 0
+
+    st_debt = _value(
+        balance_sheet,
+        "short_term_borrowings",
+    )
+
+    if st_debt is None:
+        st_debt = 0
+
+    lt_debt = _value(
+        balance_sheet,
+        "long_term_borrowings",
+    )
+
+    if lt_debt is None:
+        lt_debt = 0
+
+    return (
+        st_debt
+        + lt_debt
+        - cash
+    )
+
+
+def analyze(
+    cashflow: pd.DataFrame,
+    balance_sheet: pd.DataFrame,
+    current_price=None,
+    outstanding_shares=None,
 ):
-    return [
-        ebit * (1 - tax_rate)
-        for ebit in ebits
-    ]
+    assumptions = (
+        get_default_assumptions()
+    )
+    wacc_result = calculate_wacc()
+    discount_rate = wacc_result["wacc"]
 
-def project_fcf(
-    nopats: list[float],
-    revenues: list[float],
-    capex_percent: float,
-    nwc_percent: float,
-):
-    fcfs = []
+    years = sorted(
+        [
+            c
+            for c in cashflow.columns
+            if str(c).isdigit()
+        ]
+    )
 
-    for nopat, revenue in zip(
-        nopats,
-        revenues,
+    if len(years) == 0:
+        return {
+            "status": "error",
+            "message": "No financial year."
+        }
+
+    year = years[-1]
+
+    operating_cf = _value(
+        cashflow,
+        "net_cash_inflows_outflows_from_operating_activities",
+        year,
+    )
+
+    capex = _value(
+        cashflow,
+        "purchases_of_fixed_assets_and_other_long_term_assets",
+        year,
+    )
+    if (
+        operating_cf is None
+        or capex is None
     ):
-        capex = revenue * capex_percent
-        nwc = revenue * nwc_percent
+        return {
+            "status": "error",
+            "message": "Missing cashflow data."
+        }
 
-        fcf = nopat - capex - nwc
+    fcf = operating_cf - abs(capex)
 
-        fcfs.append(fcf)
+    growth = 0.10
 
-    return fcfs
+    projection = []
 
-def discount_fcfs(
-    fcfs: list[float],
-    wacc: float,
-):
-    discounted = []
+    current_fcf = fcf
 
-    for year, fcf in enumerate(fcfs, start=1):
-        pv = fcf / ((1 + wacc) ** year)
-        discounted.append(pv)
+    for i in range(
+        assumptions["projection_years"]
+    ):
+        current_fcf *= (
+            1 + growth
+        )
+        projection.append(
+            current_fcf
+        )
 
-    return discounted
+    present_values = []
 
-def terminal_value(
-    last_fcf: float,
-    wacc: float,
-    terminal_growth: float,
-):
-    return (
-        last_fcf
-        * (1 + terminal_growth)
-        / (wacc - terminal_growth)
+    for i, value in enumerate(projection, start=1):
+        pv = value / ((1 + discount_rate) ** i)
+        present_values.append(pv)
+
+    terminal = calculate_terminal_value(
+        last_fcf=projection[-1],
+        wacc=discount_rate,
     )
 
-
-def discount_terminal_value(
-    terminal_value: float,
-    wacc: float,
-    years: int,
-):
-    return terminal_value / (
-        (1 + wacc) ** years
+    terminal_pv = (
+        terminal["terminal_value"]
+        / (
+            (1 + discount_rate)
+            ** assumptions["projection_years"]
+        )
     )
 
-
-def enterprise_value(
-    discounted_fcfs: list[float],
-    discounted_terminal_value: float,
-):
-    return (
-        sum(discounted_fcfs)
-        + discounted_terminal_value
+    enterprise_value = (
+        sum(present_values)
+        + terminal_pv
     )
 
+    net_debt = _net_debt(
+        balance_sheet
+    )
 
-def equity_value(
-    enterprise_value: float,
-    net_debt: float,
-):
-    return enterprise_value - net_debt
+    equity_value = (
+        enterprise_value
+        - net_debt
+    )
 
+    intrinsic_value = None
 
-def intrinsic_value_per_share(
-    equity_value: float,
-    shares_outstanding: float,
-):
-    return equity_value / shares_outstanding
+    margin_of_safety = None
+
+    if (
+        outstanding_shares
+        and current_price
+    ):
+        intrinsic_value = (
+            equity_value
+            / outstanding_shares
+        )
+
+        margin_of_safety = (
+            (
+                intrinsic_value
+                - current_price
+            )
+            / current_price
+            * 100
+        )
+
+    return {
+        "status": "success",
+        "fcf": round(fcf, 2),
+        "projection": projection,
+        "assumptions": assumptions,
+        "wacc": wacc_result,
+        "present_values": present_values,
+        "terminal": terminal,
+        "terminal_pv": terminal_pv,
+        "enterprise_value": enterprise_value,
+        "net_debt": net_debt,
+        "equity_value": equity_value,
+        "intrinsic_value": intrinsic_value,
+        "current_price": current_price,
+        "margin_of_safety": margin_of_safety,
+    }

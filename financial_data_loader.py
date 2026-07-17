@@ -6,6 +6,14 @@ from data_loader import (
     load_income_statement,
 )
 
+from market_data_loader import (
+    load_market_data,
+)
+
+from company_data_loader import (
+    load_company_data,
+)
+
 
 warnings.filterwarnings(
     "ignore",
@@ -44,9 +52,20 @@ def load_financial_data(
         )
     )
 
+    market_data = load_market_data(
+        symbol
+    )
+
+    company_data = load_company_data(
+        symbol
+    )
+
+
     return {
         "symbol": symbol,
         "income": income,
         "balance_sheet": balance_sheet,
         "cashflow": cashflow,
+        "company": company_data,
+        "market": market_data,
     }

@@ -1,5 +1,4 @@
 
-print("Loaded:", __file__)
 from financial_data_loader import (
     load_financial_data,
 )
@@ -64,6 +63,10 @@ from engines.decision_engine import (
 from engines.piotroski_engine import analyze as analyze_piotroski
 from engines.altman_engine import analyze as analyze_altman
 from engines.altman_score_engine import classify as classify_altman
+from engines.beneish_engine import analyze as analyze_beneish
+from engines.beneish_score_engine import classify as classify_beneish
+from engines.dcf_engine import analyze as analyze_dcf
+from engines.relative_valuation_engine import analyze as analyze_relative
 
 # ============================================================
 # ANALYSIS PIPELINE
@@ -89,6 +92,8 @@ def run_analysis_pipeline(
     income,
     balance_sheet,
     cashflow,
+    company,
+    market,
 ):
     
     print("===== BALANCE ITEM IDs =====")
@@ -172,7 +177,104 @@ def run_analysis_pipeline(
             altman_result["score"]
         )
 
+    beneish_result = analyze_beneish(
+        income,
+        balance_sheet,
+)
+
+    current_price = market["current_price"]
+
+    outstanding_shares = company["outstanding_shares"]
+
+    if beneish_result["status"] == "success":
+        beneish_result["level"] = classify_beneish(
+            beneish_result["score"]
+        )
+    
+    print("=" * 60)
+    print("DEBUG DCF")
+    print("Current Price:", current_price)
+    print("Outstanding Shares:", outstanding_shares)
+    print("=" * 60)
+
+    dcf_result = analyze_dcf(
+        cashflow,
+        balance_sheet,
+        current_price,
+        outstanding_shares,
+    )
+
+    print("\nDCF RESULT:")
+    print(dcf_result)
+
+    # EPS
+    try:
+        eps = float(
+            income.loc[
+                income["item_id"] == "eps_basic_vnd",
+                income.columns[-1],
+            ].iloc[0]
+        )
+    except Exception:
+        eps = None
+
+    # BVPS
+    try:
+        equity = float(
+            balance_sheet.loc[
+                balance_sheet["item_id"] == "owners_equity",
+                balance_sheet.columns[-1],
+            ].iloc[0]
+        )
+
+        if outstanding_shares:
+            book_value_per_share = (
+                equity / outstanding_shares
+            )
+        else:
+            book_value_per_share = None
+
+    except Exception:
+        book_value_per_share = None
+
+    # EBITDA
+    try:
+        ebit = float(
+            income.loc[
+                income["item_id"] == "operating_profit_loss",
+                income.columns[-1],
+            ].iloc[0]
+        )
+
+        depreciation = float(
+            cashflow.loc[
+                cashflow["item_id"] == "depreciation_and_amortization",
+                cashflow.columns[-1],
+            ].iloc[0]
+        )
+
+        ebitda = ebit + depreciation
+
+    except Exception:
+        ebitda = None
+
+    print("\n===== RELATIVE DEBUG =====")
+    print("EPS:", eps)
+    print("BVPS:", book_value_per_share)
+    print("EBITDA:", ebitda)
+    print("Enterprise Value:", dcf_result["enterprise_value"])
+
+    relative_result = analyze_relative(
+        current_price=current_price,
+        eps=eps,
+        book_value_per_share=book_value_per_share,
+        enterprise_value=dcf_result["enterprise_value"],
+        ebitda=ebitda,
+    )
+
     print(altman_result)
+    
+    print(relative_result)
 
     # ==============================
     # CASHFLOW
@@ -182,6 +284,10 @@ def run_analysis_pipeline(
         cashflow,
         growth_result,
     )
+
+    print()
+    print("===== CASHFLOW ITEM IDs =====")
+    print(cashflow["item_id"].tolist()) 
 
     # ==============================
     # CASHFLOW TREND
@@ -317,6 +423,9 @@ def run_analysis_pipeline(
         "decision": decision_result,
         "piotroski": piotroski_result,
         "altman": altman_result,
+        "beneish": beneish_result,
+        "dcf": dcf_result,
+        "relative_valuation": relative_result,
     }
 
 
@@ -336,8 +445,8 @@ def run_analysis_for_symbol(
 
     return run_analysis_pipeline(
         financial_data["income"],
-        financial_data[
-            "balance_sheet"
-        ],
+        financial_data["balance_sheet"],
         financial_data["cashflow"],
+        financial_data["company"],
+        financial_data["market"],
     )
